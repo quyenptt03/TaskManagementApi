@@ -16,7 +16,6 @@ namespace TaskManagementAPI.Controllers
             
         }
 
-
         [HttpGet]
         public ActionResult GetTasks()
         {
@@ -28,15 +27,19 @@ namespace TaskManagementAPI.Controllers
         public ActionResult GetCourseById([FromRoute] int taskId)
         {
             TaskItem task = _taskService.GetTaskById(taskId);
-            return task == null ? NotFound() : Ok(task);
+            return task == null ? NotFound("Task not found") : Ok(task);
         }
 
         [HttpPost]
         public ActionResult AddTask([FromBody] TaskItem task)
         {
-            if (!ModelState.IsValid)
+            if (task == null)
             {
-                return BadRequest("Please Add Course");
+                return BadRequest("Task cannot be null");
+            }
+            else if (string.IsNullOrWhiteSpace(task.Title))
+            {
+                return BadRequest("Task must have a title.");
             }
             else
             {
@@ -56,7 +59,7 @@ namespace TaskManagementAPI.Controllers
         public ActionResult UpdateTask(int taskId, [FromBody] TaskItem task)
         {
             var taskExist = _taskService.GetTaskById(taskId);
-            if (taskExist == null)
+            if (taskExist == null || taskExist.ID != task.ID)
             {
                 return NotFound("Task Not Found!!!!!!");
             }
@@ -74,5 +77,7 @@ namespace TaskManagementAPI.Controllers
             }
             return Ok("Task Deleted Successfully");
         }
+
+
     }
 }

@@ -35,3 +35,4 @@ D:\Quyen\Training\OOP\TaskManagementAPI\TaskManagementAPI\obj\Debug\net8.0\TaskM
 D:\Quyen\Training\OOP\TaskManagementAPI\TaskManagementAPI\obj\Debug\net8.0\TaskManagementAPI.genruntimeconfig.cache
 D:\Quyen\Training\OOP\TaskManagementAPI\TaskManagementAPI\obj\Debug\net8.0\ref\TaskManagementAPI.dll
 D:\Quyen\Training\OOP\TaskManagementAPI\TaskManagementAPI\bin\Debug\net8.0\tasks.json
+D:\Quyen\Training\OOP\TaskManagementAPI\TaskManagementAPI\obj\Debug\net8.0\TaskManagementAPI.sourcelink.json

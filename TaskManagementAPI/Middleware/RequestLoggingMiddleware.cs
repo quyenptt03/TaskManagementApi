@@ -16,7 +16,7 @@ namespace TaskManagementAPI.Middleware
 
         public Task Invoke(HttpContext httpContext)
         {
-            Console.WriteLine($"Request Log: - Method: {httpContext.Request.Method}, Path: {httpContext.Request.Path}, Timestamp: {DateTime.Now}");
+            Console.WriteLine($"Request Log: - Method: {httpContext.Request.Method}, Path: {httpContext.Request.Path}, Timestamp: {DateTime.Now.ToString("MM-dd-yyyy HH:mm:ss")}");
             return _next(httpContext);
         }
     }
