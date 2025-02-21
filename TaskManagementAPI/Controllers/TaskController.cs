@@ -1,37 +1,38 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TaskManagementAPI.Interfaces;
 using TaskManagementAPI.Models;
+using TaskManagementAPI.Services;
+using Task = TaskManagementAPI.Models.Task;
 
 namespace TaskManagementAPI.Controllers
 {
     [ApiController]
     [Route("api/tasks")]
-    public class TaskController : ControllerBase
+    public class TaskController : Controller
     {
-        private readonly ITaskService _taskService;
+        private readonly IGenericRepository<Task> _repository;
 
-        public TaskController(ITaskService taskService)
+        public TaskController(IGenericRepository<Task> repository)
         {
-            _taskService = taskService;
-            
+            _repository = repository;
         }
 
         [HttpGet]
         public ActionResult GetTasks()
         {
-            List<TaskItem> result = _taskService.GetAllTasks();
+            var result = _repository.GetAll();
             return Ok(result);
         }
 
-        [HttpGet("{taskId}")]
-        public ActionResult GetCourseById([FromRoute] int taskId)
+        [HttpGet("{id}")]
+        public ActionResult GetCourseById([FromRoute] int id)
         {
-            TaskItem task = _taskService.GetTaskById(taskId);
+            var task = _repository.GetById(id);
             return task == null ? NotFound("Task not found") : Ok(task);
         }
 
         [HttpPost]
-        public ActionResult AddTask([FromBody] TaskItem task)
+        public ActionResult AddTask([FromBody] Task task)
         {
             if (task == null)
             {
@@ -45,7 +46,7 @@ namespace TaskManagementAPI.Controllers
             {
                 try
                 {
-                    _taskService.AddTask(task);
+                    _repository.Add(task);
                     return Ok(task);
                 }
                 catch (Exception e)
@@ -55,29 +56,36 @@ namespace TaskManagementAPI.Controllers
             }
         }
 
-        [HttpPut("{taskId}")]
-        public ActionResult UpdateTask(int taskId, [FromBody] TaskItem task)
+        [HttpPut("{id}")]
+        public ActionResult UpdateTask(int taskId, [FromBody] Task task)
         {
-            var taskExist = _taskService.GetTaskById(taskId);
-            if (taskExist == null || taskExist.ID != task.ID)
+            var taskExist = _repository.GetById(taskId);
+            if (taskExist == null || taskExist.Id != task.Id)
             {
                 return NotFound("Task Not Found!!!!!!");
             }
-            _taskService.UpdateTask(task);
+            _repository.Update(task);
             return Ok(task);
         }
 
-        [HttpDelete("{taskId}")]
-        public ActionResult DeleteCourse([FromRoute] int taskId)
+        [HttpDelete("{id}")]
+        public ActionResult DeleteTask([FromRoute] int id)
         {
-            bool isDeleted = _taskService.DeleteTask(taskId);
-            if (!isDeleted)
+            var task = _repository.GetById(id);
+            if (task == null)
             {
-                return NotFound("Task Not Found!!!!!!");
+                return NotFound("Task not found!!!!!");
             }
-            return Ok("Task Deleted Successfully");
+
+            try
+            {
+                _repository.Delete(id);
+                return Ok("Task Deleted Successfully");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
         }
-
-
     }
 }
