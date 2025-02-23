@@ -1,4 +1,5 @@
-﻿using TaskManagementAPI.Interfaces;
+﻿using System;
+using TaskManagementAPI.Interfaces;
 using TaskManagementAPI.Models;
 
 namespace TaskManagementAPI.Repositories
@@ -49,6 +50,11 @@ namespace TaskManagementAPI.Repositories
                 _context.Set<T>().Update(entity);
                 _context.SaveChanges();
             }
+        }
+
+        public bool Any(Func<T, bool> value)
+        {
+            return _context.Set<T>().Any(value);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿namespace TaskManagementAPI.Interfaces
+﻿
+namespace TaskManagementAPI.Interfaces
 {
     public interface IGenericRepository<T> where T : class
     {
@@ -7,5 +8,6 @@
         void Add(T entity);
         void Update(T entity);
         void Delete(int id);
+        bool Any(Func<T, bool> value);
     }
 }
