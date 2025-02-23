@@ -30,35 +30,14 @@ namespace TaskManagementAPI.Controllers
             return task == null ? NotFound("Category not found") : Ok(task);
         }
 
-        //[HttpPost]
-        //public ActionResult AddCategory([FromBody] Category category)
-        //{
-        //    if (category == null)
-        //    {
-        //        return BadRequest("Category is required");
-        //    }
-        //    if (string.IsNullOrWhiteSpace(category.Name))
-        //    {
-        //        return BadRequest("Category must have a name.");
-        //    }
-        //    else
-        //    {
-        //        try
-        //        {
-        //            _repository.Add(category);
-        //            return Ok(category);
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            return BadRequest(e);
-        //        }
-        //    }
-        //}
-
         [HttpPost]
-        public ActionResult AddCategory(string name, string description)
+        public ActionResult AddCategory([FromBody] Category category)
         {
-            if (string.IsNullOrWhiteSpace(name))
+            if (category == null)
+            {
+                return BadRequest("Category is required");
+            }
+            if (string.IsNullOrWhiteSpace(category.Name))
             {
                 return BadRequest("Category must have a name.");
             }
@@ -66,8 +45,6 @@ namespace TaskManagementAPI.Controllers
             {
                 try
                 {
-                    Category category = new Category { Name = name, Description = description };
-
                     _repository.Add(category);
                     return Ok(category);
                 }
@@ -78,8 +55,31 @@ namespace TaskManagementAPI.Controllers
             }
         }
 
+        //[HttpPost]
+        //public ActionResult AddCategory(string name, string description)
+        //{
+        //    if (string.IsNullOrWhiteSpace(name))
+        //    {
+        //        return BadRequest("Category must have a name.");
+        //    }
+        //    else
+        //    {
+        //        try
+        //        {
+        //            Category category = new Category { Name = name, Description = description };
+
+        //            _repository.Add(category);
+        //            return Ok(category);
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            return BadRequest(e);
+        //        }
+        //    }
+        //}
+
         [HttpPut("{id}")]
-        public ActionResult UpdateTask(int id, [FromBody] Category category)
+        public ActionResult UpdateCategory(int id, [FromBody] Category category)
         {
             var cat= _repository.GetById(id);
             if (cat == null || cat.Id != category.Id)
@@ -91,7 +91,7 @@ namespace TaskManagementAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        public ActionResult DeleteCourse([FromRoute] int id)
+        public ActionResult DeleteCategory([FromRoute] int id)
         {
             var category = _repository.GetById(id);
             if (category == null)

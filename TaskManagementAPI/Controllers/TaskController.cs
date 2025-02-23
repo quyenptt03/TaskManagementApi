@@ -25,7 +25,7 @@ namespace TaskManagementAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        public ActionResult GetCourseById([FromRoute] int id)
+        public ActionResult GetTaskById([FromRoute] int id)
         {
             var task = _repository.GetById(id);
             return task == null ? NotFound("Task not found") : Ok(task);

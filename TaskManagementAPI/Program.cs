@@ -18,8 +18,11 @@ options.UseSqlServer(
     b => b.MigrationsAssembly(typeof(TaskManagementDbContext).Assembly.FullName)));
 
 builder.Services.AddScoped<ITaskService, TaskService>();
-builder.Services.AddScoped<IGenericRepository<Category>, CategoryRepository>();
 builder.Services.AddScoped<IGenericRepository<User>, UserRepository>();
+builder.Services.AddScoped<IGenericRepository<Category>, CategoryRepository>();
+builder.Services.AddScoped<IGenericRepository<TaskManagementAPI.Models.Task>, TaskRepository>();
+builder.Services.AddScoped<IGenericRepository<TaskComment>, TaskCommentRepository>();
+builder.Services.AddScoped<IGenericRepository<Label>, LabelRepository>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

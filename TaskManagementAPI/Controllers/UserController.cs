@@ -46,7 +46,7 @@ namespace TaskManagementAPI.Controllers
                 try
                 {
                     _repository.Add(user);
-                    return Ok(user);
+                    return Ok();
                 }
                 catch (Exception e)
                 {
