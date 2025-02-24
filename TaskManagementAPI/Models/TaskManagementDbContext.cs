@@ -21,6 +21,8 @@ public partial class TaskManagementDbContext : DbContext
 
     public virtual DbSet<Task> Tasks { get; set; }
 
+    public virtual DbSet<TaskLabel> TaskLabels { get; set; }
+
     public virtual DbSet<TaskComment> TaskComments { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
@@ -31,6 +33,18 @@ public partial class TaskManagementDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<TaskLabel>()
+        .HasKey(tl => new { tl.TaskId, tl.LabelId });
+
+        modelBuilder.Entity<TaskLabel>()
+            .HasOne(tl => tl.Task)
+            .WithMany(t => t.TaskLabels)
+            .HasForeignKey(tl => tl.TaskId);
+
+        modelBuilder.Entity<TaskLabel>()
+            .HasOne(tl => tl.Label)
+            .WithMany(l => l.TaskLabels)
+            .HasForeignKey(tl => tl.LabelId);
         modelBuilder.Entity<Category>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Categori__3214EC07EBA720C5");
@@ -71,20 +85,20 @@ public partial class TaskManagementDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK__Tasks__UserId__403A8C7D");
 
-            entity.HasMany(d => d.Labels).WithMany(p => p.Tasks)
-                .UsingEntity<Dictionary<string, object>>(
-                    "TaskLabel",
-                    r => r.HasOne<Label>().WithMany()
-                        .HasForeignKey("LabelId")
-                        .HasConstraintName("FK__TaskLabel__Label__4CA06362"),
-                    l => l.HasOne<Task>().WithMany()
-                        .HasForeignKey("TaskId")
-                        .HasConstraintName("FK__TaskLabel__TaskI__4BAC3F29"),
-                    j =>
-                    {
-                        j.HasKey("TaskId", "LabelId").HasName("PK__TaskLabe__5FFEAB0DB3CEC2F8");
-                        j.ToTable("TaskLabels");
-                    });
+            //entity.HasMany(d => d.Labels).WithMany(p => p.Tasks)
+            //    .UsingEntity<Dictionary<string, object>>(
+            //        "TaskLabel",
+            //        r => r.HasOne<Label>().WithMany()
+            //            .HasForeignKey("LabelId")
+            //            .HasConstraintName("FK__TaskLabel__Label__4CA06362"),
+            //        l => l.HasOne<Task>().WithMany()
+            //            .HasForeignKey("TaskId")
+            //            .HasConstraintName("FK__TaskLabel__TaskI__4BAC3F29"),
+            //        j =>
+            //        {
+            //            j.HasKey("TaskId", "LabelId").HasName("PK__TaskLabe__5FFEAB0DB3CEC2F8");
+            //            j.ToTable("TaskLabels");
+            //        });
         });
 
         modelBuilder.Entity<TaskComment>(entity =>

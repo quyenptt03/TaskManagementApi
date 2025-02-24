@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using TaskManagementAPI.Interfaces;
 using TaskManagementAPI.Models;
+using TaskManagementAPI.Repositories;
 
 namespace TaskManagementAPI.Controllers
 {
@@ -9,12 +10,11 @@ namespace TaskManagementAPI.Controllers
     [Route("/api/labels")]
     public class LabelController : Controller
     {
-        private readonly IGenericRepository<Label> _repository;
+        private readonly IGenericRepository<Label> _labelRepository;
 
-        public LabelController(IGenericRepository<Label> repository)
+        public LabelController(IGenericRepository<Label> labelRepository)
         {
-            _repository = repository;
-
+            _labelRepository = labelRepository;
         }
 
         [HttpGet]
@@ -22,9 +22,10 @@ namespace TaskManagementAPI.Controllers
         {
             try
             {
-                var result = _repository.GetAll();
+                var result = _labelRepository.GetAll();
                 return Ok(result);
-            } catch(Exception e)
+            }
+            catch (Exception e)
             {
                 return BadRequest(e);
             }
@@ -35,9 +36,10 @@ namespace TaskManagementAPI.Controllers
         {
             try
             {
-                var label = _repository.GetById(id);
+                var label = _labelRepository.GetById(id);
                 return label == null ? NotFound("Label not found") : Ok(label);
-            } catch(Exception e)
+            }
+            catch (Exception e)
             {
                 return BadRequest(e);
             }
@@ -54,11 +56,11 @@ namespace TaskManagementAPI.Controllers
             {
                 try
                 {
-                    if (_repository.Any(l => l.Name == label.Name))
+                    if (_labelRepository.Any(l => l.Name == label.Name))
                     {
                         return Conflict(new { message = "Label's name already exists." });
                     }
-                    _repository.Add(label);
+                    _labelRepository.Add(label);
                     return Ok(label);
                 }
                 catch (Exception e)
@@ -71,31 +73,32 @@ namespace TaskManagementAPI.Controllers
         [HttpPut("{id}")]
         public ActionResult UpdateLabel([FromRoute] int id, [FromBody] Label label)
         {
-            var labelExists = _repository.GetById(id);
-            if (labelExists == null )
+            var labelExists = _labelRepository.GetById(id);
+            if (labelExists == null)
             {
                 return NotFound("Label Not Found!!!!!!");
             }
 
             try
             {
-                if (_repository.Any(l => l.Id != id && l.Name == label.Name))
+                if (_labelRepository.Any(l => l.Id != id && l.Name == label.Name))
                 {
                     return Conflict(new { message = "Label's name already exists." });
                 }
                 labelExists.Name = label.Name;
-                _repository.Update(labelExists);
+                _labelRepository.Update(labelExists);
                 return Ok(labelExists);
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 return BadRequest(e);
             }
         }
 
         [HttpDelete("{id}")]
-        public ActionResult DeleteCourse([FromRoute] int id)
+        public ActionResult DeleteLabel([FromRoute] int id)
         {
-            var label = _repository.GetById(id);
+            var label = _labelRepository.GetById(id);
             if (label == null)
             {
                 return NotFound("Label not found!!!!!");
@@ -103,7 +106,7 @@ namespace TaskManagementAPI.Controllers
 
             try
             {
-                _repository.Delete(id);
+                _labelRepository.Delete(id);
                 return Ok("Label Deleted Successfully");
             }
             catch (Exception e)

@@ -23,26 +23,20 @@ namespace TaskManagementAPI.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{id}")]
-        public ActionResult GetTaskCommentById([FromRoute] int id)
-        {
-            TaskComment TaskComment = _repository.GetById(id);
-            return TaskComment == null ? NotFound("TaskComment not found") : Ok(TaskComment);
-        }
 
         [HttpPost]
-        public ActionResult AddTaskComment([FromBody] TaskComment taskComment)
+        public ActionResult AddCommentToTask([FromBody] TaskComment comment)
         {
-            if (taskComment == null)
+            if (comment == null)
             {
-                return BadRequest("TaskComment cannot be null");
+                return BadRequest("Task comment cannot be null");
             }
             else
             {
                 try
                 {
-                    _repository.Add(taskComment);
-                    return Ok();
+                    _repository.Add(comment);
+                    return Ok(comment);
                 }
                 catch (Exception e)
                 {
@@ -51,31 +45,20 @@ namespace TaskManagementAPI.Controllers
             }
         }
 
-        [HttpPut("{id}")]
-        public ActionResult UpdateTaskComment([FromRoute] int id, [FromBody] TaskComment taskComment)
-        {
-            var taskCommentExists = _repository.GetById(id);
-            if (taskCommentExists == null || taskCommentExists.Id != taskComment.Id)
-            {
-                return NotFound("Task Comment Not Found!!!!!!");
-            }
-            _repository.Update(taskComment);
-            return Ok(taskComment);
-        }
 
         [HttpDelete("{id}")]
-        public ActionResult DeleteCourse([FromRoute] int id)
+        public ActionResult DeleteComment([FromRoute] int id)
         {
-            var TaskComment = _repository.GetById(id);
-            if (TaskComment == null)
+            var comment = _repository.GetById(id);
+            if (comment == null)
             {
-                return NotFound("TaskComment not found!!!!!");
+                return NotFound("Comment not found!!!!!");
             }
 
             try
             {
                 _repository.Delete(id);
-                return Ok("TaskComment Deleted Successfully");
+                return Ok("Commet Deleted Successfully");
             }
             catch (Exception e)
             {

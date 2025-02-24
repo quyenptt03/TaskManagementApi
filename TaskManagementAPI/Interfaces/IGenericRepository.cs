@@ -8,6 +8,7 @@ namespace TaskManagementAPI.Interfaces
         void Add(T entity);
         void Update(T entity);
         void Delete(int id);
+        void Delete(T entity);
         bool Any(Func<T, bool> value);
     }
 }

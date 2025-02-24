@@ -57,15 +57,27 @@ namespace TaskManagementAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public ActionResult UpdateTask(int taskId, [FromBody] Task task)
+        public ActionResult UpdateTask(int id, [FromBody] Task task)
         {
-            var taskExist = _repository.GetById(taskId);
-            if (taskExist == null || taskExist.Id != task.Id)
+            var taskExist = _repository.GetById(id);
+            if (taskExist == null)
             {
                 return NotFound("Task Not Found!!!!!!");
             }
-            _repository.Update(task);
-            return Ok(task);
+            try
+            {
+                taskExist.Title = task.Title;
+                taskExist.Description = task.Description;
+                taskExist.CategoryId = task.CategoryId;
+                taskExist.IsCompleted = task.IsCompleted;
+
+                _repository.Update(taskExist);
+                return Ok(taskExist);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
         }
 
         [HttpDelete("{id}")]

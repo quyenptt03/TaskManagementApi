@@ -1,6 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.AspNetCore.Mvc;
+using TaskManagementAPI.Helpers;
 using TaskManagementAPI.Interfaces;
 using TaskManagementAPI.Models;
+using TaskManagementAPI.Repositories;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace TaskManagementAPI.Controllers
 {
@@ -9,11 +16,12 @@ namespace TaskManagementAPI.Controllers
     public class UserController : Controller
     {
         private readonly IGenericRepository<User> _repository;
+        private readonly IConfiguration _configuration;
 
-        public UserController(IGenericRepository<User> repository)
+        public UserController(IGenericRepository<User> repository, IConfiguration configuration)
         {
             _repository = repository;
-
+            _configuration = configuration;
         }
 
         [HttpGet]
@@ -30,41 +38,75 @@ namespace TaskManagementAPI.Controllers
             return user == null ? NotFound("User not found") : Ok(user);
         }
 
-        [HttpPost]
-        public ActionResult AddUser([FromBody] User user)
+        [HttpPost("register")]
+        public ActionResult Register([FromBody] Auth registerUser)
         {
-            if (user == null)
-            {
-                return BadRequest("User cannot be null");
-            }
-            else if (string.IsNullOrWhiteSpace(user.Username) || string.IsNullOrWhiteSpace(user.Email) || string.IsNullOrWhiteSpace(user.PasswordHash))
+            if (registerUser.Username == null || registerUser.Email == null || registerUser.Password == null)
             {
                 return BadRequest("Username, email and password are required.");
             }
-            else
+            if (_repository.Any(u => u.Username == registerUser.Username))
             {
-                try
-                {
-                    _repository.Add(user);
-                    return Ok();
-                }
-                catch (Exception e)
-                {
-                    return BadRequest(e);
-                }
+                return Conflict("Username already exists");
             }
+            if (_repository.Any(u => u.Email == registerUser.Email))
+            {
+                return Conflict("Email already exists");
+            }
+            try
+            {
+                User user = new User
+                {
+                    Username = registerUser.Username,
+                    Email = registerUser.Email,
+                    PasswordHash = SecurePassword.Hash(registerUser.Password)
+                };
+                _repository.Add(user);
+                return Ok(user);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+            
         }
 
-        [HttpPut("{id}")]
-        public ActionResult UpdateUser([FromRoute] int id, [FromBody] User user)
+        [HttpPost("login")]
+        public ActionResult Login([FromBody] Auth loginUser)
         {
-            var userExists = _repository.GetById(id);
-            if (userExists == null || userExists.Id != user.Id)
+            if (loginUser.Email == null || loginUser.Password == null)
             {
-                return NotFound("User Not Found!!!!!!");
+                return BadRequest("Email and password are required.");
             }
-            _repository.Update(user);
-            return Ok(user);
+            var user = _repository.GetAll().FirstOrDefault(u => u.Email == loginUser.Email);
+            if (user == null)
+            {
+                return Unauthorized("Invalid email or password");
+            }
+            bool isValid = SecurePassword.Verify(loginUser.Password, user.PasswordHash);
+            if (!isValid)
+            {
+                return Unauthorized("Invalid username or password.");
+            }
+
+            var claims = new List<Claim> {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim("Email", user.Email)
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["ApplicationSettings:JWT_Secret"]));
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                claims: claims,
+                notBefore: DateTime.UtcNow,
+                expires: DateTime.UtcNow.AddDays(1),
+                signingCredentials: credentials
+                );
+            string accessToken = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return Ok(new { token = accessToken});
         }
 
         [HttpDelete("{id}")]

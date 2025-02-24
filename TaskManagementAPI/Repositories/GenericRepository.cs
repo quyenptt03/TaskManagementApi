@@ -32,6 +32,14 @@ namespace TaskManagementAPI.Repositories
             }
         }
 
+        public void Update(T entity)
+        {
+            if (entity != null)
+            {
+                _context.Set<T>().Update(entity);
+                _context.SaveChanges();
+            }
+        }
         public void Delete(int id)
         {
             T entity = GetById(id);
@@ -43,13 +51,10 @@ namespace TaskManagementAPI.Repositories
             }
         }
 
-        public void Update(T entity)
+        public void Delete(T entity)
         {
-            if (entity != null)
-            {
-                _context.Set<T>().Update(entity);
-                _context.SaveChanges();
-            }
+            _context.Set<T>().Remove(entity);
+            _context.SaveChanges();
         }
 
         public bool Any(Func<T, bool> value)

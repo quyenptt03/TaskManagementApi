@@ -25,5 +25,5 @@ public partial class Task
 
     public virtual User? User { get; set; }
 
-    public virtual ICollection<Label> Labels { get; set; } = new List<Label>();
+    public virtual ICollection<TaskLabel> TaskLabels { get; set; } = new List<TaskLabel>();
 }

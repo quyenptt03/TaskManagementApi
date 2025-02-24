@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TaskManagementAPI.Interfaces;
 using TaskManagementAPI.Models;
-using TaskManagementAPI.Services;
 
 namespace TaskManagementAPI.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/categories")]
     public class CategoryController : Controller
@@ -26,8 +27,8 @@ namespace TaskManagementAPI.Controllers
         [HttpGet("{id}")]
         public ActionResult Get([FromRoute] int id)
         {
-            Category task = _repository.GetById(id);
-            return task == null ? NotFound("Category not found") : Ok(task);
+            Category cat = _repository.GetById(id);
+            return cat == null ? NotFound("Category not found") : Ok(cat);
         }
 
         [HttpPost]
@@ -55,39 +56,28 @@ namespace TaskManagementAPI.Controllers
             }
         }
 
-        //[HttpPost]
-        //public ActionResult AddCategory(string name, string description)
-        //{
-        //    if (string.IsNullOrWhiteSpace(name))
-        //    {
-        //        return BadRequest("Category must have a name.");
-        //    }
-        //    else
-        //    {
-        //        try
-        //        {
-        //            Category category = new Category { Name = name, Description = description };
-
-        //            _repository.Add(category);
-        //            return Ok(category);
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            return BadRequest(e);
-        //        }
-        //    }
-        //}
-
         [HttpPut("{id}")]
         public ActionResult UpdateCategory(int id, [FromBody] Category category)
         {
             var cat= _repository.GetById(id);
-            if (cat == null || cat.Id != category.Id)
+            if (cat == null )
             {
                 return NotFound("Category Not Found!!!!!!");
             }
-            _repository.Update(category);
-            return Ok(category);
+            try
+            {
+                if (_repository.Any(c => c.Id != id && c.Name == c.Name))
+                {
+                    return Conflict(new { message = "Category's name already exists." });
+                }
+                cat.Name = category.Name;
+                _repository.Update(cat);
+                return Ok(cat);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
         }
 
         [HttpDelete("{id}")]
