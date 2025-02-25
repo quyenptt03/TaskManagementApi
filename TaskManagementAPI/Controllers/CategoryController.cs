@@ -66,11 +66,12 @@ namespace TaskManagementAPI.Controllers
             }
             try
             {
-                if (_repository.Any(c => c.Id != id && c.Name == c.Name))
+                if (_repository.Any(c => c.Id != id && c.Name == category.Name))
                 {
                     return Conflict(new { message = "Category's name already exists." });
                 }
                 cat.Name = category.Name;
+                cat.Description = category.Description;
                 _repository.Update(cat);
                 return Ok(cat);
             }

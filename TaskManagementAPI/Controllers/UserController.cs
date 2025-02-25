@@ -8,6 +8,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Newtonsoft.Json.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TaskManagementAPI.Controllers
 {
@@ -17,25 +19,13 @@ namespace TaskManagementAPI.Controllers
     {
         private readonly IGenericRepository<User> _repository;
         private readonly IConfiguration _configuration;
+        private readonly AuthHelpers _authHelper;
 
-        public UserController(IGenericRepository<User> repository, IConfiguration configuration)
+        public UserController(IGenericRepository<User> repository, IConfiguration configuration, AuthHelpers authHelper)
         {
             _repository = repository;
             _configuration = configuration;
-        }
-
-        [HttpGet]
-        public ActionResult GetUsers()
-        {
-            var result = (List<User>)_repository.GetAll();
-            return Ok(result);
-        }
-
-        [HttpGet("{id}")]
-        public ActionResult GetCourseById([FromRoute] int id)
-        {
-            User user = _repository.GetById(id);
-            return user == null ? NotFound("User not found") : Ok(user);
+            _authHelper = authHelper;
         }
 
         [HttpPost("register")]
@@ -68,7 +58,7 @@ namespace TaskManagementAPI.Controllers
             {
                 return BadRequest(e);
             }
-            
+
         }
 
         [HttpPost("login")]
@@ -89,28 +79,46 @@ namespace TaskManagementAPI.Controllers
                 return Unauthorized("Invalid username or password.");
             }
 
-            var claims = new List<Claim> {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim("Email", user.Email)
-            };
+            string accessToken = _authHelper.CreateToken(user);
+            Response.Cookies.Append("token", accessToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                //Expires = DateTime.UtcNow.AddDays(1) 
+                Expires = DateTime.UtcNow.AddMinutes(1)
+            });
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["ApplicationSettings:JWT_Secret"]));
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                claims: claims,
-                notBefore: DateTime.UtcNow,
-                expires: DateTime.UtcNow.AddDays(1),
-                signingCredentials: credentials
-                );
-            string accessToken = new JwtSecurityTokenHandler().WriteToken(token);
-
-            return Ok(new { token = accessToken});
+            //return Ok(new { token = accessToken });
+            return Ok(new { message = "Login successfully" });
         }
 
+        [Authorize]
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("token");
+            return Ok(new { message = "Logged out successfully" });
+        }
+
+        [Authorize]
+        [HttpGet]
+        public ActionResult GetUsers()
+        {
+            var result = (List<User>)_repository.GetAll();
+            return Ok(result);
+        }
+
+        [HttpGet("{id}")]
+        public ActionResult GetUserById([FromRoute] int id)
+        {
+            User user = _repository.GetById(id);
+            return user == null ? NotFound("User not found") : Ok(user);
+        }
+
+        [Authorize]
         [HttpDelete("{id}")]
-        public ActionResult DeleteCourse([FromRoute] int id)
+        public ActionResult DeleteUser([FromRoute] int id)
         {
             var user = _repository.GetById(id);
             if (user == null)

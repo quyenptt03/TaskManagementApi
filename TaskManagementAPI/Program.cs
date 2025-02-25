@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using TaskManagementAPI.Helpers;
 using TaskManagementAPI.Interfaces;
@@ -13,7 +14,6 @@ using TaskManagementAPI.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<TaskManagementDbContext>(options =>
@@ -21,6 +21,7 @@ options.UseSqlServer(
     builder.Configuration.GetConnectionString("DefaultConnection"),
     b => b.MigrationsAssembly(typeof(TaskManagementDbContext).Assembly.FullName)));
 
+builder.Services.AddScoped<AuthHelpers>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IGenericRepository<User>, UserRepository>();
 builder.Services.AddScoped<IGenericRepository<Category>, CategoryRepository>();
@@ -45,6 +46,19 @@ builder.Services.AddAuthentication(cfg => {
         ValidateIssuer = false,
         ValidateAudience = false,
         ClockSkew = TimeSpan.Zero
+    };
+
+    x.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if (context.Request.Cookies.ContainsKey("token"))
+            {
+                context.Token = context.Request.Cookies["token"];
+            }
+
+            return System.Threading.Tasks.Task.CompletedTask;
+        }
     };
 });
 
